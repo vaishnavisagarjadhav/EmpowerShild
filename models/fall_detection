@@ -1,0 +1,48 @@
+"""
+Fall & Motion Detection Module
+--------------------------------
+Consumes accelerometer + gyroscope readings (already sampled on-device)
+and flags a probable fall/struggle event.
+
+Real-world approach: a sliding window of ~2-3 seconds of sensor data
+fed into a lightweight 1D-CNN (TFLite) trained on fall datasets (e.g. SisFall).
+Here we implement the classic threshold-based signal-magnitude-vector (SMV)
+method, which is a solid, explainable baseline and works fully offline
+on-device with negligible battery cost.
+"""
+import math
+from config import settings
+
+
+def signal_magnitude_vector(ax: float, ay: float, az: float) -> float:
+    return math.sqrt(ax ** 2 + ay ** 2 + az ** 2)
+
+
+def analyze_motion(accel_window: list, gyro_window: list) -> dict:
+    """
+    accel_window: list of {x, y, z} in g, sampled over ~2-3 seconds
+    gyro_window: list of {x, y, z} in deg/s over the same window
+    """
+    smv_values = [signal_magnitude_vector(a["x"], a["y"], a["z"]) for a in accel_window]
+    peak_smv = max(smv_values) if smv_values else 0
+    baseline = sum(smv_values) / len(smv_values) if smv_values else 0
+
+    gyro_peak = max(
+        (math.sqrt(g["x"] ** 2 + g["y"] ** 2 + g["z"] ** 2) for g in gyro_window),
+        default=0,
+    )
+
+    free_fall_detected = peak_smv >= settings.FALL_ACCEL_THRESHOLD
+    impact_spin_detected = gyro_peak >= settings.FALL_GYRO_THRESHOLD
+
+    fall_detected = free_fall_detected and impact_spin_detected
+
+    return {
+        "peak_acceleration_g": round(peak_smv, 3),
+        "baseline_acceleration_g": round(baseline, 3),
+        "peak_gyro_dps": round(gyro_peak, 3),
+        "fall_detected": fall_detected,
+        "confidence": round(min(1.0, (peak_smv / settings.FALL_ACCEL_THRESHOLD) * 0.5 +
+                                 (gyro_peak / settings.FALL_GYRO_THRESHOLD) * 0.5), 3),
+        "action": "TRIGGER_SOS_CONFIRMATION" if fall_detected else "MONITOR",
+    }
