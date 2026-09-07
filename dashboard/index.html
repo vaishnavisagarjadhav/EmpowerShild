@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EmpowerShield — Guardian Console</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root {
+    --ink: #0B1620;
+    --panel: #101E2B;
+    --panel-line: #1F3243;
+    --teal: #4FD1C5;
+    --teal-dim: #2A6B65;
+    --alert: #FF5C5C;
+    --alert-dim: #3A1E22;
+    --text-hi: #EAF2F1;
+    --text-lo: #8FA3AC;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text-hi);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 28px 36px 20px;
+    border-bottom: 1px solid var(--panel-line);
+  }
+
+  .brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.01em;
+  }
+  .brand span { color: var(--teal); }
+
+  .subtitle {
+    color: var(--text-lo);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  .pulse-row { display: flex; align-items: center; gap: 8px; }
+  .pulse-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 0 rgba(79,209,197,0.6);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(79,209,197,0.5); }
+    70% { box-shadow: 0 0 0 10px rgba(79,209,197,0); }
+    100% { box-shadow: 0 0 0 0 rgba(79,209,197,0); }
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 22px;
+    padding: 26px 36px 40px;
+  }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+
+  .panel h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    color: var(--text-hi);
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .stat .num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+  }
+  .stat .label { color: var(--text-lo); font-size: 13px; margin-top: 4px; }
+  .stat.alert .num { color: var(--alert); }
+  .stat.safe .num { color: var(--teal); }
+
+  #incident-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .incident-card {
+    border: 1px solid var(--alert-dim);
+    background: linear-gradient(180deg, rgba(255,92,92,0.06), transparent);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .incident-card .id { font-weight: 600; font-size: 14px; }
+  .incident-card .meta { color: var(--text-lo); font-size: 12.5px; margin-top: 4px; line-height: 1.5; }
+  .incident-card .tag {
+    background: var(--alert);
+    color: #1A0303;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 10px;
+    color: var(--text-lo);
+  }
+  .empty-state .icon { font-size: 30px; margin-bottom: 8px; }
+
+  #map-placeholder {
+    height: 260px;
+    border-radius: 8px;
+    border: 1px dashed var(--panel-line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-lo);
+    font-size: 13px;
+    background:
+      radial-gradient(circle at 30% 40%, rgba(79,209,197,0.08), transparent 60%),
+      radial-gradient(circle at 70% 70%, rgba(255,92,92,0.06), transparent 55%);
+    margin-bottom: 20px;
+  }
+
+  .config-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  input[type="text"] {
+    flex: 1;
+    background: var(--ink);
+    border: 1px solid var(--panel-line);
+    color: var(--text-hi);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  button {
+    background: var(--teal);
+    color: #06201D;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  button:hover { background: #66E0D4; }
+
+  footer {
+    text-align: center;
+    color: var(--text-lo);
+    font-size: 12px;
+    padding: 10px 0 30px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand">Empower<span>Shield</span></div>
+    <div class="subtitle">Guardian Console — live incident monitoring</div>
+  </div>
+  <div class="pulse-row">
+    <div class="pulse-dot"></div>
+    <span id="conn-status" style="font-size:13px;color:var(--text-lo);">connecting…</span>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>Active Incidents</h2>
+    <div id="incident-list">
+      <div class="empty-state">
+        <div class="icon">🛡️</div>
+        Loading incidents…
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="panel" style="margin-bottom:22px;">
+      <h2>Backend Connection</h2>
+      <div class="config-row">
+        <input type="text" id="api-url" value="http://127.0.0.1:8000" placeholder="Backend base URL">
+        <button onclick="setApiUrl()">Connect</button>
+      </div>
+      <div style="color:var(--text-lo); font-size:12.5px;">
+        Point this at your running FastAPI backend (main.py). Polls
+        <code>/sos/active</code> every 5 seconds.
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat alert">
+        <div class="num" id="stat-active">0</div>
+        <div class="label">Active Incidents</div>
+      </div>
+      <div class="stat safe">
+        <div class="num" id="stat-uptime">Live</div>
+        <div class="label">Monitoring Status</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="stat-lastcheck">—</div>
+        <div class="label">Last Refresh</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Coverage Map</h2>
+      <div id="map-placeholder">
+        Wire up Google Maps JS API here — plot each incident's<br>
+        latitude/longitude as a live marker.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>EmpowerShield · Women Safety and Emergency Response System · Project Exhibition</footer>
+
+<script>
+  let API_BASE = document.getElementById('api-url').value;
+
+  function setApiUrl() {
+    API_BASE = document.getElementById('api-url').value.replace(/\/$/, '');
+    fetchIncidents();
+  }
+
+  function timeAgo(iso) {
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (diff < 60) return diff + "s ago";
+    if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+    return Math.floor(diff / 3600) + "h ago";
+  }
+
+  async function fetchIncidents() {
+    const statusEl = document.getElementById('conn-status');
+    const listEl = document.getElementById('incident-list');
+    try {
+      const res = await fetch(`${API_BASE}/sos/active`);
+      const data = await res.json();
+      const incidents = data.active_incidents || [];
+
+      statusEl.textContent = "connected";
+      document.getElementById('stat-active').textContent = incidents.length;
+      document.getElementById('stat-lastcheck').textContent =
+        new Date().toLocaleTimeString();
+
+      if (incidents.length === 0) {
+        listEl.innerHTML = `<div class="empty-state">
+            <div class="icon">🛡️</div>
+            No active incidents. Everyone is safe.
+          </div>`;
+        return;
+      }
+
+      listEl.innerHTML = incidents.map(inc => `
+        <div class="incident-card">
+          <div>
+            <div class="id">User ${inc.user_id} · ${inc.trigger_type}</div>
+            <div class="meta">
+              📍 ${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)}<br>
+              🕒 ${timeAgo(inc.created_at)}
+            </div>
+          </div>
+          <div class="tag">ACTIVE</div>
+        </div>
+      `).join('');
+    } catch (e) {
+      statusEl.textContent = "disconnected — check backend URL";
+    }
+  }
+
+  fetchIncidents();
+  setInterval(fetchIncidents, 5000);
+</script>
+
+</body>
+</html>
